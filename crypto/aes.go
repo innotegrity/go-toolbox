@@ -9,8 +9,8 @@ import (
 	"encoding/base64"
 	"io"
 
+	"go.innotegrity.dev/toolbox/slog"
 	"go.innotegrity.dev/zerolog"
-	"go.innotegrity.dev/zerolog/log"
 )
 
 // DecryptString decrypts the given block of ciphertext that was encrypted using the EncryptString() function.
@@ -20,16 +20,13 @@ import (
 // The following errors are returned by this function:
 // ErrDecodeFailure, ErrGenerateCipherFailure, ErrGenerateGCMFailure, ErrDecryptFailure
 func DecryptString(ctx context.Context, ciphertext, key string) (string, error) {
-	logger := log.Logger
-	if l := zerolog.Ctx(ctx); l != nil {
-		logger = *l
-	}
+	logger := slog.FromContext(ctx)
 
 	// decode the Base64-encoded string
 	data, err := base64.StdEncoding.DecodeString(ciphertext)
 	if err != nil {
 		e := &ErrDecodeFailure{Err: err}
-		logger.Error().Err(e.Err).Msg(e.Error())
+		logger.Error(e.Error(), slog.Err(e.Error()))
 		return "", e
 	}
 
@@ -98,7 +95,7 @@ func DecryptString(ctx context.Context, ciphertext, key string) (string, error) 
 // The following errors are returned by this function:
 // ErrGenerateRandomKeyFailure, ErrGenerateCipherFailure, ErrGenerateGCMFailure, ErrGenerateNonceFailure
 func EncryptString(ctx context.Context, plaintext, key string) (string, error) {
-	logger := log.Logger
+	logger := slog.Logger
 	if l := zerolog.Ctx(ctx); l != nil {
 		logger = *l
 	}
